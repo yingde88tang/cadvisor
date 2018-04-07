@@ -242,6 +242,9 @@ func (nc *NvidiaCollector) UpdateStats(stats *info.ContainerStats) error {
 		}
 
 		containerMemoryUsed, err := nc.getContainerMemoryUsed(device)
+		if err != nil {
+			return fmt.Errorf("error while getting container gpu memory stats: %v", err)
+		}
 
 		stats.Accelerators = append(stats.Accelerators, info.AcceleratorStats{
 			Make:        "nvidia",
