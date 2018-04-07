@@ -66,6 +66,7 @@ type containerData struct {
 	housekeepingInterval     time.Duration
 	maxHousekeepingInterval  time.Duration
 	allowDynamicHousekeeping bool
+	inHostNamespace          bool
 	infoLastUpdatedTime      time.Time
 	statsLastUpdatedTime     time.Time
 	lastErrorTime            time.Time
@@ -603,8 +604,14 @@ func (c *containerData) updateStats() error {
 
 	var nvidiaStatsErr error
 	if c.nvidiaCollector != nil {
+		var collector accelerators.NvidiaCollector = c.nvidiaCollector.(accelerators.NvidiaCollector{})
+		collector.ContainerPIDs, nvidiaStatsErr = c.getContainerPids(c.inHostNamespace)
+		if nvidiaStatsErr != nil {
+			return nvidiaStatsErr
+		}
+
 		// This updates the Accelerators field of the stats struct
-		nvidiaStatsErr = c.nvidiaCollector.UpdateStats(stats)
+		nvidiaStatsErr = collector.UpdateStats(stats)
 	}
 
 	ref, err := c.handler.ContainerReference()

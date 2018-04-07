@@ -549,6 +549,10 @@ type AcceleratorStats struct {
 	// unit: bytes
 	MemoryUsed uint64 `json:"memory_used"`
 
+	// Total accelerator memory allocated to the container.
+	// unit: bytes
+	ContainerMemoryUsed uint64 `json:"container_memory_used"`
+
 	// Percent of time over the past sample period during which
 	// the accelerator was actively processing.
 	DutyCycle uint64 `json:"duty_cycle"`

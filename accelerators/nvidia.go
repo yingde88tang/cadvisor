@@ -216,6 +216,7 @@ var parseDevicesCgroup = func(devicesCgroupPath string) ([]int, error) {
 type NvidiaCollector struct {
 	// Exposed for testing
 	Devices []gonvml.Device
+	ContainerPIDs []string
 }
 
 // UpdateStats updates the stats for NVIDIA GPUs (if any) attached to the container.
@@ -233,11 +234,14 @@ func (nc *NvidiaCollector) UpdateStats(stats *info.ContainerStats) error {
 		if err != nil {
 			return fmt.Errorf("error while getting gpu memory info: %v", err)
 		}
+
 		//TODO: Use housekeepingInterval
 		utilizationGPU, err := device.AverageGPUUtilization(10 * time.Second)
 		if err != nil {
 			return fmt.Errorf("error while getting gpu utilization: %v", err)
 		}
+
+		containerMemoryUsed, err := nc.getContainerMemoryUsed(device)
 
 		stats.Accelerators = append(stats.Accelerators, info.AcceleratorStats{
 			Make:        "nvidia",
@@ -245,8 +249,34 @@ func (nc *NvidiaCollector) UpdateStats(stats *info.ContainerStats) error {
 			ID:          uuid,
 			MemoryTotal: memoryTotal,
 			MemoryUsed:  memoryUsed,
+			ContainerMemoryUsed: containerMemoryUsed,
 			DutyCycle:   uint64(utilizationGPU),
 		})
 	}
 	return nil
 }
+
+func (nc *NvidiaCollector) getContainerMemoryUsed(device gonvml.Device) (uint64, error) {
+	var processIds []uint64
+	for _, pid := range nc.ContainerPIDs {
+		processId, err := strconv.ParseUint(pid, 0, 64)
+		if err != nil {
+			return 0, fmt.Errorf("error while getting gpu memory usage: %v", err)
+		}
+		processIds = append(processIds, processId)
+	}
+
+	graphicsMemoryUsed, err := device.GraphicsMemoryUsed(processIds)
+	if err != nil {
+		return 0, fmt.Errorf("error while getting gpu memory usage: %v", err)
+	}
+
+	computeMemoryUsed, err := device.ComputeMemoryUsed(processIds)
+	if err != nil {
+		return 0, fmt.Errorf("error while getting gpu memory usage: %v", err)
+	}
+
+	var sum uint64 = graphicsMemoryUsed + computeMemoryUsed
+	return sum, nil
+}
+

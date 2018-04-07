@@ -967,6 +967,9 @@ func (m *manager) createContainerLocked(containerName string, watchSource watche
 	if err != nil {
 		return err
 	}
+
+	cont.inHostNamespace = m.inHostNamespace;
+
 	devicesCgroupPath, err := handler.GetCgroupPath("devices")
 	if err != nil {
 		glog.Warningf("Error getting devices cgroup path: %v", err)
