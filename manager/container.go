@@ -604,14 +604,14 @@ func (c *containerData) updateStats() error {
 
 	var nvidiaStatsErr error
 	if c.nvidiaCollector != nil {
-		var collector accelerators.NvidiaCollector = c.nvidiaCollector.(accelerators.NvidiaCollector{})
-		collector.ContainerPIDs, nvidiaStatsErr = c.getContainerPids(c.inHostNamespace)
+		nCollector := c.nvidiaCollector.(*accelerators.NvidiaCollector)
+		nCollector.ContainerPIDs, nvidiaStatsErr = c.getContainerPids(c.inHostNamespace)
 		if nvidiaStatsErr != nil {
 			return nvidiaStatsErr
 		}
 
 		// This updates the Accelerators field of the stats struct
-		nvidiaStatsErr = collector.UpdateStats(stats)
+		nvidiaStatsErr = c.nvidiaCollector.UpdateStats(stats)
 	}
 
 	ref, err := c.handler.ContainerReference()
