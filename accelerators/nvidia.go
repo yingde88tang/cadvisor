@@ -215,7 +215,7 @@ var parseDevicesCgroup = func(devicesCgroupPath string) ([]int, error) {
 
 type NvidiaCollector struct {
 	// Exposed for testing
-	Devices []gonvml.Device
+	Devices       []gonvml.Device
 	ContainerPIDs []string
 }
 
@@ -247,13 +247,13 @@ func (nc *NvidiaCollector) UpdateStats(stats *info.ContainerStats) error {
 		}
 
 		stats.Accelerators = append(stats.Accelerators, info.AcceleratorStats{
-			Make:        "nvidia",
-			Model:       model,
-			ID:          uuid,
-			MemoryTotal: memoryTotal,
-			MemoryUsed:  memoryUsed,
+			Make:                "nvidia",
+			Model:               model,
+			ID:                  uuid,
+			MemoryTotal:         memoryTotal,
+			MemoryUsed:          memoryUsed,
 			ContainerMemoryUsed: containerMemoryUsed,
-			DutyCycle:   uint64(utilizationGPU),
+			DutyCycle:           uint64(utilizationGPU),
 		})
 	}
 	return nil
@@ -282,4 +282,3 @@ func (nc *NvidiaCollector) getContainerMemoryUsed(device gonvml.Device) (uint64,
 	var sum uint64 = graphicsMemoryUsed + computeMemoryUsed
 	return sum, nil
 }
-
